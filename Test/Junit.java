@@ -114,10 +114,12 @@ public class Junit {
         rebuildCount = hashing.getRebuildCount();
         System.out.println("Rebuild count after 2nd and 3rd collision: " + rebuildCount);
     }
+
+    /** Space Complexity Tests */
     @Test
     public void testSpaceComplexity() {
         int numElements = 1000;
-        UniversalHashing<String> hashTable = new UniversalHashing<>(numElements);
+        HashTable<String> hashTable = new UniversalHashing<>(numElements);
 
         for (int i = 0; i < numElements; i++) {
             String key = "key_" + i;
@@ -126,6 +128,25 @@ public class Junit {
 
         long memoryUsage = getMemoryUsage(hashTable);
         long expectedSpaceComplexity = numElements * numElements;
+
+        System.out.println("Memory usage: " + memoryUsage);
+        System.out.println("Expected space complexity: " + expectedSpaceComplexity);
+        assert memoryUsage >= expectedSpaceComplexity : "Space complexity violated!";
+    }
+    @Test
+    public void testSpaceComplexity2() {
+        int numElements = 1000;
+        HashTable<String> hashTable = new PerfectHashing<>(numElements);
+
+        for (int i = 0; i < numElements; i++) {
+            String key = "key_" + i;
+            hashTable.insert(key);
+        }
+
+        long memoryUsage = getMemoryUsage(hashTable);
+        long expectedSpaceComplexity = numElements;
+        System.out.println("Memory usage: " + memoryUsage);
+        System.out.println("Expected space complexity: " + expectedSpaceComplexity);
 
         assert memoryUsage >= expectedSpaceComplexity : "Space complexity violated!";
     }
@@ -139,6 +160,8 @@ public class Junit {
 
 
 
+
+    /** Dictionary Tests */
     @Test
     public void testDictionaryInsert() {
         dictionary.insert("apple");
@@ -195,6 +218,72 @@ public class Junit {
         dictionary.insert("banana");
 
         dictionary.batchDelete("test2.txt");
+
+        assertTrue(dictionary.search("apple"));
+        assertTrue(dictionary.search("banana"));
+        assertFalse(dictionary.search("yet"));
+        assertFalse(dictionary.search("ever"));
+        assertFalse(dictionary.search("Then"));
+
+    }
+    @Test
+    public void testDictionary2Insert() {
+        dictionary2.insert("apple");
+        dictionary2.insert("banana");
+        dictionary2.insert("cherry");
+
+        assertTrue(dictionary2.search("apple"));
+        assertTrue(dictionary2.search("banana"));
+        assertTrue(dictionary2.search("cherry"));
+    }
+    @Test
+    public void testDictionary2Delete() {
+        dictionary2.insert("apple");
+        dictionary2.insert("banana");
+        dictionary2.insert("cherry");
+
+        dictionary2.delete("banana");
+
+        assertTrue(dictionary2.search("apple"));
+        assertFalse(dictionary2.search("banana"));
+        assertTrue(dictionary2.search("cherry"));
+    }
+    @Test
+    public void testDictionary2Search() {
+        dictionary2.insert("apple");
+        dictionary2.insert("banana");
+        dictionary2.insert("cherry");
+
+        assertTrue(dictionary2.search("apple"));
+        assertTrue(dictionary2.search("banana"));
+        assertTrue(dictionary2.search("cherry"));
+        assertFalse(dictionary2.search("orange"));
+    }
+    @Test
+    public void testDictionary2BatchInsert() {
+        dictionary2.insert("apple");
+        dictionary2.insert("banana");
+
+        dictionary2.batchInsert("test1.txt");
+
+        assertTrue(dictionary2.search("apple"));
+        assertTrue(dictionary2.search("banana"));
+        assertTrue(dictionary2.search("yet"));
+        assertTrue(dictionary2.search("ever"));
+        assertTrue(dictionary2.search("Then"));
+    }
+    @Test
+    public void testDictionary2BatchDelete() {
+        dictionary2.insert("apple");
+        dictionary2.insert("banana");
+
+        dictionary2.batchDelete("test2.txt");
+
+        assertTrue(dictionary2.search("apple"));
+        assertTrue(dictionary2.search("banana"));
+        assertFalse(dictionary2.search("yet"));
+        assertFalse(dictionary2.search("ever"));
+        assertFalse(dictionary2.search("Then"));
     }
 }
 

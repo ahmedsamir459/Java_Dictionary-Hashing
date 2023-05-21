@@ -13,6 +13,7 @@ public class Dictionary {
                 dictionary = new UniversalHashing<>(size);
                 break;
             case "O(N)":
+                dictionary = new PerfectHashing<>(size);
                 break;
             default:
                 throw new IllegalArgumentException("Invalid backend perfect hashing type: " + backendType);
