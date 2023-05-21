@@ -9,7 +9,7 @@ public class PerfectHashing<T> implements HashTable<T> {
     private Random random;
     private int[][][] hashFunctions;
     private int[][] outerHashFunction;
-
+    private int collisionCount;
     public PerfectHashing(int N) {
         random = new Random();
         this.n = N;
@@ -116,6 +116,7 @@ public class PerfectHashing<T> implements HashTable<T> {
             } else {
                 count[firstIndex]++;
                 table[firstIndex] = reHashInsert((T[]) table[firstIndex], key);
+                collisionCount++;
             }
             return true;
         }
