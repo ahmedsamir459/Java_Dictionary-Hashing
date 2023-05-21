@@ -3,7 +3,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public class UniversalHashing <T extends Comparable<T>> implements HashTable<T>{
+public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
     private int size;
     private List<T>[] table;
     private int[][] hashFunction;
@@ -32,27 +32,31 @@ public class UniversalHashing <T extends Comparable<T>> implements HashTable<T>{
     }
 
     @Override
-    public void insert(T key) {
+    public boolean insert(T key) {
         int index = calculateIndex(key);
         if (table[index] == null) {
             table[index] = new ArrayList<>();
         }
-        table[index].add(key);
 
-        // Handle collision
-        if (table[index].size() > 1) {
-            List<T> elementsToReinsert = new ArrayList<>();
-            for (List<T> bin : table) {
-                if (bin != null) {
-                    elementsToReinsert.addAll(bin);
+        if (table[index].contains(key)) {
+            return false;
+        } else {
+            table[index].add(key);
+            if (table[index].size() > 1) {
+                List<T> elementsToReinsert = new ArrayList<>();
+                for (List<T> bin : table) {
+                    if (bin != null) {
+                        elementsToReinsert.addAll(bin);
+                    }
                 }
+                Arrays.fill(table, null);
+                T[] reinsertArray = toArrayWithElementType(elementsToReinsert);
+                buildHashTable(reinsertArray);
             }
-            Arrays.fill(table, null);
-            // Reinsert the elements
-            T[] reinsertArray = toArrayWithElementType(elementsToReinsert);
-            buildHashTable(reinsertArray);
+            return true;
         }
     }
+
     @SuppressWarnings("unchecked")
     private T[] toArrayWithElementType(List<T> list) {
         T[] array = (T[]) new Comparable[list.size()];
@@ -61,10 +65,13 @@ public class UniversalHashing <T extends Comparable<T>> implements HashTable<T>{
 
 
     @Override
-    public void delete(T key) {
+    public boolean delete(T key) {
         int index = calculateIndex(key);
         if (table[index] != null) {
             table[index].remove(key);
+            return true;
+        } else {
+            return false;
         }
     }
 
