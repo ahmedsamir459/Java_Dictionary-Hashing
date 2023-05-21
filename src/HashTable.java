@@ -4,5 +4,6 @@ public interface HashTable<T> {
     boolean search(T key);
     void batchInsert(T[] keys);
     void batchDelete(T[] keys);
+    int getCollisionCount();
     void print();
 }

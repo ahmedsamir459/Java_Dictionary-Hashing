@@ -170,4 +170,7 @@ public class PerfectHashing<T> implements HashTable<T> {
         }
         System.out.println("_______________________________________________________________________");
     }
+    public int getCollisionCount() {
+        return collisionCount;
+    }
 }

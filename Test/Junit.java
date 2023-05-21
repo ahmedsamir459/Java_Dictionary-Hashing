@@ -4,18 +4,48 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class Junit {
-    private UniversalHashing<Integer> hashing=new UniversalHashing<>(5);
+    private HashTable<Integer> hashing;
     private Dictionary dictionary=new Dictionary("O(N^2)", 100);
     private Dictionary dictionary2=new Dictionary("O(N)", 100);
 
+
+    @Test
+    public void compareCollisions(){
+        HashTable<String> hash1=new UniversalHashing<>(100);
+        HashTable<String> hash2=new PerfectHashing<>(100);
+        int collisions1=0;
+        int collisions2=0;
+        for (int i=0;i<100;i++){
+            hash1.insert("a"+i);
+            hash2.insert("a"+i);
+            collisions1+=hash1.getCollisionCount();
+            collisions2+=hash2.getCollisionCount();
+        }
+        System.out.println(collisions1);
+        System.out.println(collisions2);
+        assertTrue(collisions2>collisions1);
+    }
     @Test
     public void testInsert() {
+        //test universal hashing
+        hashing=new UniversalHashing<>(5);
+        hashing.insert(5);
+        assertTrue(hashing.search(5));
+        //test perfect hashing
+        hashing=new PerfectHashing<>(5);
         hashing.insert(5);
         assertTrue(hashing.search(5));
     }
 
     @Test
     public void testDelete() {
+        //test universal hashing
+        hashing=new UniversalHashing<>(5);
+        hashing.insert(5);
+        hashing.delete(5);
+        assertFalse(hashing.search(5));
+        //test perfect hashing
+        hashing=new PerfectHashing<>(5);
         hashing.insert(5);
         hashing.delete(5);
         assertFalse(hashing.search(5));
@@ -23,8 +53,20 @@ public class Junit {
 
     @Test
     public void testingBatchInsert() {
+        //test universal hashing
+        hashing=new UniversalHashing<>(5);
         Integer[] keys = {1, 2, 3, 4, 5};
         Integer[] keys2 = {6, 7, 8, 9, 10};
+        hashing.batchInsert(keys);
+        hashing.batchInsert(keys2);
+        for (Integer key : keys) {
+            assertTrue(hashing.search(key));
+        }
+        for (Integer key : keys2) {
+            assertTrue(hashing.search(key));
+        }
+        //test perfect hashing
+        hashing=new PerfectHashing<>(5);
         hashing.batchInsert(keys);
         hashing.batchInsert(keys2);
         for (Integer key : keys) {
@@ -37,8 +79,20 @@ public class Junit {
 
     @Test
     public void testBatchDelete() {
+        //test universal hashing
+        hashing=new UniversalHashing<>(5);
         Integer[] keys = {1, 2, 3, 4, 5};
         Integer[] keys2 = {6, 7, 8, 9, 10};
+        hashing.batchInsert(keys);
+        hashing.batchDelete(keys);
+        for (Integer key : keys) {
+            assertFalse(hashing.search(key));
+        }
+        for (Integer key : keys2) {
+            assertFalse(hashing.search(key));
+        }
+        //test perfect hashing
+        hashing=new PerfectHashing<>(5);
         hashing.batchInsert(keys);
         hashing.batchDelete(keys);
         for (Integer key : keys) {
@@ -51,8 +105,8 @@ public class Junit {
 
     @Test
     public void testInsertAndContains() {
+        //test universal hashing
         UniversalHashing<String> hashTable = new UniversalHashing<>(5);
-
         hashTable.insert("apple");
         hashTable.insert("banana");
         hashTable.insert("cherry");
@@ -60,13 +114,22 @@ public class Junit {
         assertTrue(hashTable.search("apple"));
         assertTrue(hashTable.search("banana"));
         assertTrue(hashTable.search("cherry"));
-
         assertFalse(hashTable.search("orange"));
+        //test perfect hashing
+        PerfectHashing<String> hashTable2 = new PerfectHashing<>(5);
+        hashTable2.insert("apple");
+        hashTable2.insert("banana");
+        hashTable2.insert("cherry");
+
+        assertTrue(hashTable2.search("apple"));
+        assertTrue(hashTable2.search("banana"));
+        assertTrue(hashTable2.search("cherry"));
+        assertFalse(hashTable2.search("orange"));
     }
 
     @Test
     public void testCollisionDetection() {
-
+        //test universal hashing
         Integer[] keys = {1, 2, 3, 4, 5};
 
         UniversalHashing<Integer> hashTable = new UniversalHashing<>(keys);
@@ -75,16 +138,24 @@ public class Junit {
 
         System.out.println("Collision count: " + hashTable.getCollisionCount());
         Assert.assertEquals(true,hashTable.getCollisionCount()<=5);
+        //test perfect hashing
+        PerfectHashing<Integer> hashTable2 = new PerfectHashing<>(keys.length);
+        hashTable2.batchInsert(keys);
+        System.out.println("Collision count: " + hashTable2.getCollisionCount());
+        Assert.assertEquals(true,hashTable2.getCollisionCount()<=5);
+
     }
 
     @Test
     public void testEmptyHashTable() {
+        //test universal hashing
         UniversalHashing<String> hashTable = new UniversalHashing<>(10);
         assertFalse(hashTable.search("apple"));
     }
 
     @Test
     public void testLargeHashTable() {
+        //test universal hashing
         UniversalHashing<Integer> hashTable = new UniversalHashing<>(1000);
 
         for (int i = 0; i < 1000; i++) {
@@ -97,6 +168,7 @@ public class Junit {
 
     @Test
     public void testRebuildCount() {
+        //test universal hashing
         Integer[] keys = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         UniversalHashing<Integer> hashing = new UniversalHashing<>(keys);
 
@@ -114,6 +186,7 @@ public class Junit {
         rebuildCount = hashing.getRebuildCount();
         System.out.println("Rebuild count after 2nd and 3rd collision: " + rebuildCount);
     }
+
 
     /** Space Complexity Tests */
     @Test

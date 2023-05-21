@@ -43,6 +43,7 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
         } else {
             table[index].add(key);
             if (table[index].size() > 1) {
+                collisionCount++;
                 List<T> elementsToReinsert = new ArrayList<>();
                 for (List<T> bin : table) {
                     if (bin != null) {
