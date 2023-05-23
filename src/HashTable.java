@@ -5,5 +5,6 @@ public interface HashTable<T> {
     void batchInsert(T[] keys);
     void batchDelete(T[] keys);
     int getCollisionCount();
+    int getRebuildCount();
     void print();
 }

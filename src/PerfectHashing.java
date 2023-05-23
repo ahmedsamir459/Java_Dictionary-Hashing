@@ -1,71 +1,197 @@
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
 
 public class PerfectHashing<T> implements HashTable<T> {
 
-    private Object[][] table;
-    private int n;
-    private int[] count;
+    private int size;
+    List<T>[][] outerTable;
+
+    int[][] outerHashFunction;
+
+    int[][][] innerHashFunctions;
+
+    int[] counter;
     private Random random;
-    private int[][][] hashFunctions;
-    private int[][] outerHashFunction;
+    private boolean collisionDetected;
     private int collisionCount;
-    public PerfectHashing(int N) {
+    private int rebuildCount;
+
+    public PerfectHashing(int size) {
+        this.size = size;
         random = new Random();
-        this.n = N;
-        buildHashTable();
+        // Create the hash table
+        outerTable = new List[size][];
+        outerHashFunction = generateHashFunction(size);
+        innerHashFunctions = new int[size][][];
+        counter = new int[size];
+        Arrays.fill(counter, 0);
     }
 
-    public void buildHashTable() {
-        hashFunctions = new int[n][][];
-        table = new Object[n][];
-        count = new int[n];
-        Arrays.fill(count, 0);
-        for (int i = 0; i < n; i++) {
-            table[i] = null;
-            hashFunctions[i] = null;
+    @Override
+    public boolean insert(T key) {
+        int index1 = calculateIndex(key, outerHashFunction, size);
+        // no Inner Table
+        if (outerTable[index1] == null) {
+            outerTable[index1] = new List[(int) Math.ceil(0.001*size)];
+            innerHashFunctions[index1] = generateHashFunction((int) Math.ceil(0.001*size));
+            int index2 = calculateIndex(key, innerHashFunctions[index1], (int) Math.ceil(0.001*size));
+            outerTable[index1][index2] = new ArrayList<>();
+            outerTable[index1][index2].add(key);
+            counter[index1]++;
+            return true;
         }
-        outerHashFunction = generateHashFunction(n);
-    }
-
-    public T[] reHashInsert(T[] level2, T collidedKey) {
-        int firstIndex = calculateIndex(outerHashFunction, collidedKey, n);
-        boolean hashed = false;
-        T[] newLevel2 = (T[]) new Object[(int) Math.pow(count[firstIndex], 2)];
-        while (!hashed) {
-            hashed = true;
-            hashFunctions[firstIndex] = generateHashFunction((int) Math.pow(count[firstIndex], 2));
-            newLevel2 = (T[]) new Object[(int) Math.pow(count[firstIndex], 2)];
-            for (int i = 0; i < level2.length; i++) {
-                if (level2[i] != null) {
-                    int secondIndex = calculateIndex(hashFunctions[firstIndex], level2[i],
-                            (int) Math.pow(count[firstIndex], 2));
-                    if (newLevel2[secondIndex] == null) {
-                        newLevel2[secondIndex] = level2[i];
-                    } else {
-                        hashed = false;
-                        break;
+        int index2 = calculateIndex(key, innerHashFunctions[index1], outerTable[index1].length);
+        if (outerTable[index1][index2] == null || outerTable[index1][index2].isEmpty()) {
+            outerTable[index1][index2] = new ArrayList<>();
+            outerTable[index1][index2].add(key);
+        }
+        if (outerTable[index1][index2].contains(key)) {
+            return false;
+        } else {
+            outerTable[index1][index2].add(key);
+            if (outerTable[index1][index2].size() > 1) {
+                collisionCount++;
+                List<T> elementsToReinsert = new ArrayList<>();
+                for (List<T> bin : outerTable[index1]) {
+                    if (bin != null) {
+                        elementsToReinsert.addAll(bin);
                     }
                 }
+                Arrays.fill(outerTable[index1], null);
+                T[] reinsertArray = toArrayWithElementType(elementsToReinsert);
+                outerTable[index1] = buildHashTable(reinsertArray, index1);
             }
-            int secondIndex = calculateIndex(hashFunctions[firstIndex], collidedKey,
-                    (int) Math.pow(count[firstIndex], 2));
-            if (newLevel2[secondIndex] == null) {
-                newLevel2[secondIndex] = collidedKey;
-            } else {
-                hashed = false;
-            }
+            counter[index1]++;
+            return true;
         }
-        return newLevel2;
     }
 
-    public boolean search(T key) {
-        int firstIndex = calculateIndex(outerHashFunction, key, n);
-        if (table[firstIndex] == null)
-            return false;
-        int secondIndex = calculateIndex(hashFunctions[firstIndex], key, table[firstIndex].length);
-        return table[firstIndex][secondIndex] != null && table[firstIndex][secondIndex].equals(key);
+    @SuppressWarnings("unchecked")
+    private T[] toArrayWithElementType(List<T> list) {
+        T[] array = (T[]) new Comparable[list.size()];
+//        System.out.println("Array converted");
+        return list.toArray(array);
     }
+
+
+    @Override
+    public boolean delete(T key) {
+        if (search(key)) {
+            int index1 = calculateIndex(key, outerHashFunction, size);
+            int index2 = calculateIndex(key, innerHashFunctions[index1], outerTable[index1].length);
+            outerTable[index1][index2].remove(key);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void batchInsert(T[] keys) {
+        for (T key : keys) {
+            insert(key);
+        }
+//        ArrayList<T>[] mapped = new ArrayList[size];
+//        for (int i = 0; i < size; i++) {
+//            mapped[i] = new ArrayList<>();
+//        }
+//        for (T key : keys) {
+//            int index1 = calculateIndex(key, outerHashFunction, size);
+////            if (!mapped[index1].contains(key)) {
+//            mapped[index1].add(key);
+////            }
+//        }
+//        for (int i = 0; i < size; i++) {
+//            if (mapped[i].isEmpty()) {
+//                continue;
+//            }
+//            if (counter[i] == 0) {
+//                outerTable[i] = buildHashTable(toArrayWithElementType(mapped[i]), i);
+//                counter[i] = counter[i] + mapped[i].size();
+//            } else {
+//
+//                for (Iterator<T> iterator = mapped[i].iterator(); iterator.hasNext(); ) {
+//                    T key = iterator.next();
+//                    int index2 = calculateIndex(key, innerHashFunctions[i], outerTable[i].length);
+//                    if (outerTable[i][index2] == null) {
+//                        outerTable[i][index2] = new ArrayList<>();
+//                        outerTable[i][index2].add(key);
+//                        counter[i]++;
+//                        iterator.remove(); // Use the iterator's remove() method instead of mapped[i].remove(key)
+//                    } else if (outerTable[i][index2].isEmpty()) {
+//                        outerTable[i][index2].add(key);
+//                        counter[i]++;
+//                        iterator.remove();
+//                    } else {
+////                        System.out.println("Collision Detected need to rebuild");
+//                        collisionCount++;
+////                        System.out.println(key+" collided with "+outerTable[i][innerIndex]);
+//                        rebuildCount++;
+//                        outerTable[i] = buildHashTable(merge(mapped[i], outerTable[i]), i);
+//                        counter[i] = counter[i] + mapped[i].size();
+//                        break;
+//                    }
+//
+//                }
+//            }
+//
+//
+//        }
+    }
+
+
+    public T[] merge(ArrayList<T> newKeys, List<T>[] oldKeys) {
+
+        for (List<T> bin : oldKeys) {
+            if (bin != null) {
+                newKeys.addAll(bin);
+            }
+        }
+        return toArrayWithElementType(newKeys);
+
+    }
+
+    @Override
+    public void batchDelete(T[] keys) {
+        for (T key : keys) {
+            delete(key);
+        }
+    }
+
+    private List<T>[] buildHashTable(T[] keys, int outerIndex) {
+        int size = keys.length * keys.length;
+//        System.out.println("Keys Size= "+size+" Keys are "+Arrays.toString(keys));
+        List<T>[] table = new List[size];
+        int count = -1;
+        do {
+            count++;
+//            System.out.println("In loop for the "+(count+1)+" time");
+            Arrays.fill(table, null);
+            collisionDetected = false;
+            innerHashFunctions[outerIndex] = generateHashFunction(keys.length * keys.length);
+            for (T key : keys) {
+                int index = calculateIndex(key, innerHashFunctions[outerIndex], size);
+//                System.out.println(key+" mapped to ["+index+"]");
+                if (table[index] != null && !table[index].isEmpty()) {
+//                    System.out.println(key+" collided with "+table[index] +" at ["+index+"] ");
+//                    System.out.println("Keys Size= "+size+" Keys are "+Arrays.toString(keys));
+                    collisionDetected = true;
+                    collisionCount++;
+                    break;
+                }
+                if (table[index] == null) {
+                    table[index] = new ArrayList<>();
+                }
+                table[index].add(key);
+            }
+
+            if (collisionDetected) {
+                rebuildCount++;
+//                table = new List[size]; // Clear the table if collisions occurred
+            }
+        } while (collisionDetected);
+//        System.out.println("While loop executed "+count+ " times");
+        return table;
+    }
+
 
     public int[][] generateHashFunction(int size) {
         int[][] hashFunction = new int[log2(size)][];
@@ -78,14 +204,15 @@ public class PerfectHashing<T> implements HashTable<T> {
         return hashFunction;
     }
 
-    public int calculateIndex(int[][] hashFunction, T key, int size) {
+
+    private int calculateIndex(T key, int[][] hashFunction, int size) {
         int index = 0;
         for (int i = 0; i < log2(size); i++) {
             int[] hash = hashFunction[i];
             int h = 0;
             for (int j = 0; j < 32; j++) {
                 if (hash[j] == 1) {
-                    h ^= (key.hashCode() >> j) & 1;
+                    h ^= (customHashFunction(key) >> j) & 1;
                 }
             }
             index = (index << 1) | h;
@@ -93,84 +220,88 @@ public class PerfectHashing<T> implements HashTable<T> {
         return index % size;
     }
 
+    private int dotProduct(int[] hash, T key) {
+        int result = 0;
+        int[] keyBits = toBinaryArray(customHashFunction(key));
+        for (int i = 0; i < 32; i++) {
+            result += hash[i] * keyBits[i];
+        }
+        return result % 2;
+    }
+
+    private int[] toBinaryArray(int n) {
+        int[] binaryArray = new int[32];
+        for (int i = 31; i >= 0; i--) {
+            binaryArray[i] = n & 1;
+            n >>= 1;
+        }
+        return binaryArray;
+    }
+
     private int log2(int n) {
         return (int) (Math.log(n) / Math.log(2));
     }
 
-    public boolean insert(T key) {
-        if (search(key))
+    @Override
+    public boolean search(T key) {
+        int index1 = calculateIndex(key, outerHashFunction, size);
+        if (outerTable[index1] == null) {
             return false;
-        else {
-            int firstIndex = calculateIndex(outerHashFunction, key, n);
-            int secondIndex;
-            if (count[firstIndex] == 0) {
-                table[firstIndex] = (T[]) new Object[1];
-                hashFunctions[firstIndex] = generateHashFunction(1);
-                secondIndex = calculateIndex(hashFunctions[firstIndex], key, 1);
-            } else {
-                secondIndex = calculateIndex(hashFunctions[firstIndex], key, table[firstIndex].length);
-            }
-            if (table[firstIndex][secondIndex] == null) {
-                table[firstIndex][secondIndex] = key;
-                count[firstIndex]++;
-            } else {
-                count[firstIndex]++;
-                table[firstIndex] = reHashInsert((T[]) table[firstIndex], key);
-                collisionCount++;
-            }
-            return true;
         }
-    }
-
-    public boolean delete(T key) {
-        int firstIndex = calculateIndex(outerHashFunction, key, n);
-        if (table[firstIndex] == null)
-            return false;
-        int secondIndex = calculateIndex(hashFunctions[firstIndex], key, table[firstIndex].length);
-        if (table[firstIndex][secondIndex] == null) {
-            return false;
-        } else {
-            if (!table[firstIndex][secondIndex].equals(key))
-                return false;
-            table[firstIndex][secondIndex] = null;
-            return true;
+        int index2 = calculateIndex(key, innerHashFunctions[index1], outerTable[index1].length);
+        if (outerTable[index1][index2] != null) {
+            return outerTable[index1][index2].contains(key);
         }
-    }
-
-    public void batchInsert(T[] keys) {
-        for (int i = 0; i < keys.length; i++) {
-            insert(keys[i]);
-        }
-    }
-
-    public void batchDelete(T[] keys) {
-        for (int i = 0; i < keys.length; i++) {
-            delete(keys[i]);
-        }
+        return false;
     }
 
     public void print() {
-        System.out.println("HASH TABLE");
-        System.out.println("_______________________________________________________________________");
-        for (int i = 0; i < table.length; i++) {
-            System.out.print(i + "=>");
-            if (table[i] == null) {
-                System.out.print(" Null");
-                System.out.println();
+        int count = 0;
+        for (int i = 0; i < size; i++) {
+//            System.out.print(i + "=>");
+            if (outerTable[i] == null) {
+//            System.out.print(" Null");
+//            System.out.println();
                 continue;
             }
-            for (int j = 0; j < table[i].length; j++) {
-                if (table[i][j] == null) {
-                    System.out.print(" [" + j + "] X    ");
+            for (int j = 0; j < outerTable[i].length; j++) {
+                if (outerTable[i][j] == null || outerTable[i][j].isEmpty()) {
+//                System.out.print(" [" + j + "] X    ");
                 } else {
-                    System.out.print(" [" + j + "] " + table[i][j] + "    ");
+//                System.out.print(" [" + j + "] " + outerTable[i][j] + "    ");
+                    count++;
                 }
             }
-            System.out.println();
+//            System.out.println();
         }
+        System.out.println("Size =" + count);
         System.out.println("_______________________________________________________________________");
     }
+
+    public boolean isCollisionDetected() {
+        return collisionDetected;
+    }
+
     public int getCollisionCount() {
         return collisionCount;
+    }
+
+    public int getRebuildCount() {
+        return rebuildCount;
+    }
+
+    private int customHashFunction(Object key) {
+        String str = key.toString();
+        final int FNV_OFFSET_BASIS = 0x811C9DC5;
+        final int FNV_PRIME = 0x01000193;
+
+        int hash = FNV_OFFSET_BASIS;
+
+        for (int i = 0; i < str.length(); i++) {
+            hash ^= str.charAt(i);
+            hash *= FNV_PRIME;
+        }
+
+        return hash;
     }
 }

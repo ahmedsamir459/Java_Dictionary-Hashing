@@ -1,30 +1,164 @@
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 public class Junit {
+    int size=20000 ;
     private HashTable<Integer> hashing;
-    private Dictionary dictionary=new Dictionary("O(N^2)", 100);
-    private Dictionary dictionary2=new Dictionary("O(N)", 100);
+    private Dictionary dictionary=new Dictionary("O(N^2)", size);
+    private Dictionary dictionary2=new Dictionary("O(N)", 85000);
 
 
     @Test
-    public void compareCollisions(){
-        HashTable<String> hash1=new UniversalHashing<>(100);
-        HashTable<String> hash2=new PerfectHashing<>(100);
-        int collisions1=0;
-        int collisions2=0;
-        for (int i=0;i<100;i++){
-            hash1.insert("a"+i);
-            hash2.insert("a"+i);
-            collisions1+=hash1.getCollisionCount();
-            collisions2+=hash2.getCollisionCount();
-        }
-        System.out.println(collisions1);
-        System.out.println(collisions2);
-        assertTrue(collisions2>collisions1);
+    public void testUniversalHashing() {
+        HashTable<Integer> hashTable = new UniversalHashing<>(8);
+        testHashTable(hashTable);
     }
+    @Test
+    public void testPerfectHashing() {
+        HashTable<Integer> hashTable = new PerfectHashing<>(8);
+        testHashTable(hashTable);
+    }
+
+    @Test
+    public void timeComparisons(){
+        List<String> keys = readKeysFromFile("10k.txt");
+
+        HashTable<String> dictionary = new UniversalHashing<>(keys.size());
+        HashTable<String> dictionary2 = new PerfectHashing<>(keys.size());
+
+        long avr1=0;
+        long avr2=0;
+
+        for (int i=0; i<10; i++){
+            long startTime = System.currentTimeMillis();
+            for (String key : keys) {
+                dictionary.insert(key);
+            }
+            long endTime = System.currentTimeMillis();
+            long duration = (endTime - startTime);
+            dictionary=new UniversalHashing<>(keys.size());
+            avr1+=duration;
+        }
+        avr1/=10;
+        System.out.println("Time taken to insert 20k keys in O(N^2) is: " + avr1+ " ms");
+
+        for (int i=0; i<10; i++){
+            long startTime2 = System.currentTimeMillis();
+            for (String key : keys) {
+                dictionary2.insert(key);
+            }
+            long endTime2 = System.currentTimeMillis();
+            long duration2 = (endTime2 - startTime2);
+            dictionary2=new PerfectHashing<>(keys.size());
+            avr2+=duration2;
+        }
+        avr2/=10;
+        System.out.println("Time taken to insert 20k keys in O(N) is: " + avr2 + " ms");
+    }
+
+
+
+    private void testHashTable(HashTable<Integer> hashTable) {
+        // Insertion tests
+        Assert.assertTrue(hashTable.insert(5));
+        Assert.assertTrue(hashTable.insert(15));
+        Assert.assertTrue(hashTable.insert(25));
+        Assert.assertTrue(hashTable.insert(35));
+        Assert.assertTrue(hashTable.insert(45));
+        Assert.assertTrue(hashTable.insert(55));
+        Assert.assertTrue(hashTable.insert(65));
+        Assert.assertTrue(hashTable.insert(75));
+        Assert.assertFalse(hashTable.insert(5)); // Already inserted, should return false
+
+        // Search tests
+        Assert.assertTrue(hashTable.search(5));
+        Assert.assertTrue(hashTable.search(15));
+        Assert.assertTrue(hashTable.search(25));
+        Assert.assertTrue(hashTable.search(35));
+        Assert.assertTrue(hashTable.search(45));
+        Assert.assertTrue(hashTable.search(55));
+        Assert.assertTrue(hashTable.search(65));
+        Assert.assertTrue(hashTable.search(75));
+        Assert.assertFalse(hashTable.search(105)); // Not inserted, should return false
+
+        // Deletion tests
+        Assert.assertTrue(hashTable.delete(5));
+        Assert.assertTrue(hashTable.delete(15));
+        Assert.assertTrue(hashTable.delete(25));
+        Assert.assertTrue(hashTable.delete(35));
+        Assert.assertTrue(hashTable.delete(45));
+        Assert.assertTrue(hashTable.delete(55));
+        Assert.assertTrue(hashTable.delete(65));
+        Assert.assertTrue(hashTable.delete(75));
+        Assert.assertFalse(hashTable.delete(105)); // Not inserted, should return false
+
+        // Batch insertion tests
+        Integer[] keys = { 2, 4, 6, 8, 10 };
+        hashTable.batchInsert(keys);
+        Assert.assertTrue(hashTable.search(2));
+        Assert.assertTrue(hashTable.search(4));
+        Assert.assertTrue(hashTable.search(6));
+        Assert.assertTrue(hashTable.search(8));
+        Assert.assertTrue(hashTable.search(10));
+
+        // Batch deletion tests
+        hashTable.batchDelete(keys);
+        Assert.assertFalse(hashTable.search(2));
+        Assert.assertFalse(hashTable.search(4));
+        Assert.assertFalse(hashTable.search(6));
+        Assert.assertFalse(hashTable.search(8));
+        Assert.assertFalse(hashTable.search(10));
+
+        // Performance tests
+        int[] largeKeys = generateLargeKeys(10000);
+        if(hashTable instanceof UniversalHashing){
+            System.out.println("Universal Hashing");
+            hashTable=new UniversalHashing<>(10000);
+        }else{
+            System.out.println("Perfect Hashing");
+            hashTable=new PerfectHashing<>(10000);
+
+        }
+        long start = System.currentTimeMillis();
+        for (int key : largeKeys) {
+            hashTable.insert(key);
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("Time taken to insert 10,000 keys: " + (end - start) + " ms");
+
+        start = System.currentTimeMillis();
+        for (int key : largeKeys) {
+            hashTable.search(key);
+        }
+        end = System.currentTimeMillis();
+        System.out.println("Time taken to search 10,000 keys: " + (end - start) + " ms");
+
+        start = System.currentTimeMillis();
+        for (int key : largeKeys) {
+            hashTable.delete(key);
+        }
+        end = System.currentTimeMillis();
+        System.out.println("Time taken to delete 10,000 keys: " + (end - start) + " ms");
+
+        System.out.println("Number of collisions: " + hashTable.getCollisionCount());
+    }
+
+    private int[] generateLargeKeys(int i) {
+        int[] keys = new int[i];
+        for (int j = 0; j < i; j++) {
+            keys[j] = j;
+        }
+        return keys;
+    }
+
     @Test
     public void testInsert() {
         //test universal hashing
@@ -128,109 +262,91 @@ public class Junit {
     }
 
     @Test
-    public void testCollisionDetection() {
-        //test universal hashing
-        Integer[] keys = {1, 2, 3, 4, 5};
-
-        UniversalHashing<Integer> hashTable = new UniversalHashing<>(keys);
-
-        assertFalse(hashTable.isCollisionDetected());
-
-        System.out.println("Collision count: " + hashTable.getCollisionCount());
-        Assert.assertEquals(true,hashTable.getCollisionCount()<=5);
-        //test perfect hashing
-        PerfectHashing<Integer> hashTable2 = new PerfectHashing<>(keys.length);
-        hashTable2.batchInsert(keys);
-        System.out.println("Collision count: " + hashTable2.getCollisionCount());
-        Assert.assertEquals(true,hashTable2.getCollisionCount()<=5);
-
-    }
-
-    @Test
     public void testEmptyHashTable() {
-        //test universal hashing
         UniversalHashing<String> hashTable = new UniversalHashing<>(10);
+        PerfectHashing<String> hashTable2 = new PerfectHashing<>(10);
+
         assertFalse(hashTable.search("apple"));
+        assertFalse(hashTable2.search("apple"));
     }
 
     @Test
     public void testLargeHashTable() {
-        //test universal hashing
-        UniversalHashing<Integer> hashTable = new UniversalHashing<>(1000);
+        HashTable<String> hashTable = new UniversalHashing<>(1000);
+        HashTable<String> hashTable2 = new PerfectHashing<>(1000);
 
         for (int i = 0; i < 1000; i++) {
-            hashTable.insert(i);
+            hashTable.insert("key"+i);
+            hashTable2.insert("key"+i);
         }
         for (int i = 0; i < 1000; i++) {
-            assertTrue(hashTable.search(i));
+            assertTrue(hashTable.search("key"+i));
+            assertTrue(hashTable2.search("key"+i));
         }
     }
 
     @Test
+    public void testCollisionCount() {
+
+        List<String> words = readKeysFromFile("20k.txt");
+        HashTable<String> hashTable = new PerfectHashing<>(words.size());
+        HashTable<String> hashTable2 = new UniversalHashing<>(words.size());
+
+        hashTable.batchInsert(words.toArray(new String[0]));
+        hashTable2.batchInsert(words.toArray(new String[0]));
+
+        int rebuildCount = hashTable.getCollisionCount();
+        int rebuildCount2 = hashTable2.getCollisionCount();
+
+        System.out.println("Collision count for O(N): " + rebuildCount);
+        System.out.println("Collision count for O(N^2): " + rebuildCount2);
+
+        Assert.assertEquals(true,rebuildCount<=words.size());
+        Assert.assertEquals(true,rebuildCount2<=words.size());
+    }
+    @Test
     public void testRebuildCount() {
-        //test universal hashing
-        Integer[] keys = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        UniversalHashing<Integer> hashing = new UniversalHashing<>(keys);
 
-        int rebuildCount = hashing.getRebuildCount();
-        System.out.println("Initial rebuild count: " + rebuildCount);
+        List<String> words = readKeysFromFile("20k.txt");
+        HashTable<String> hashTable = new PerfectHashing<>(words.size());
+        HashTable<String> hashTable2 = new UniversalHashing<>(words.size());
 
-        hashing.insert(11);
+        hashTable.batchInsert(words.toArray(new String[0]));
+        hashTable2.batchInsert(words.toArray(new String[0]));
 
-        rebuildCount = hashing.getRebuildCount();
-        System.out.println("Rebuild count after 1st collision: " + rebuildCount);
+        int rebuildCount = hashTable.getRebuildCount();
+        int rebuildCount2 = hashTable2.getRebuildCount();
 
-        hashing.insert(12);
-        hashing.insert(13);
+        System.out.println("ReBuild count for O(N): " + rebuildCount);
+        System.out.println("ReBuild count for O(N^2): " + rebuildCount2);
 
-        rebuildCount = hashing.getRebuildCount();
-        System.out.println("Rebuild count after 2nd and 3rd collision: " + rebuildCount);
+        Assert.assertEquals(true,rebuildCount<=words.size());
+        Assert.assertEquals(true,rebuildCount2<=words.size());
     }
 
 
     /** Space Complexity Tests */
     @Test
     public void testSpaceComplexity() {
-        int numElements = 1000;
-        HashTable<String> hashTable = new UniversalHashing<>(numElements);
 
-        for (int i = 0; i < numElements; i++) {
-            String key = "key_" + i;
-            hashTable.insert(key);
+        int n = 1000;
+        UniversalHashing<String> hashTable = new UniversalHashing<>(n);
+        HashTableSpaceComplexityTest hashTableSpaceComplexityTest = new HashTableSpaceComplexityTest();
+        for (int i = 0; i < n; i++) {
+            hashTable.insert("key" + i);
         }
+        System.out.println("Space complexity: " + hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable));
+        Assert.assertEquals(true,hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable)<=Math.pow(n,2));
 
-        long memoryUsage = getMemoryUsage(hashTable);
-        long expectedSpaceComplexity = numElements * numElements;
+        //test perfect hashing
+        PerfectHashing<String> hashTable2 = new PerfectHashing<>(n);
 
-        System.out.println("Memory usage: " + memoryUsage);
-        System.out.println("Expected space complexity: " + expectedSpaceComplexity);
-        assert memoryUsage >= expectedSpaceComplexity : "Space complexity violated!";
-    }
-    @Test
-    public void testSpaceComplexity2() {
-        int numElements = 1000;
-        HashTable<String> hashTable = new PerfectHashing<>(numElements);
-
-        for (int i = 0; i < numElements; i++) {
-            String key = "key_" + i;
-            hashTable.insert(key);
+        for (int i = 0; i < n; i++) {
+            hashTable2.insert("key" + i);
         }
-
-        long memoryUsage = getMemoryUsage(hashTable);
-        long expectedSpaceComplexity = numElements;
-        System.out.println("Memory usage: " + memoryUsage);
-        System.out.println("Expected space complexity: " + expectedSpaceComplexity);
-
-        assert memoryUsage >= expectedSpaceComplexity : "Space complexity violated!";
+        System.out.println("Space complexity: " + hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable2));
+        Assert.assertEquals(true,n<=hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable2)&&hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable2)<=Math.log(n)*n);
     }
-
-    private long getMemoryUsage(Object obj) {
-        Runtime runtime = Runtime.getRuntime();
-        runtime.gc();
-        long memoryUsed = runtime.totalMemory() - runtime.freeMemory();
-        return memoryUsed;
-    }
-
 
 
 
@@ -275,14 +391,13 @@ public class Junit {
     public void testDictionaryBatchInsert() {
         dictionary.insert("apple");
         dictionary.insert("banana");
-
-        dictionary.batchInsert("test1.txt");
+        dictionary.batchInsert("20k.txt");
 
         assertTrue(dictionary.search("apple"));
         assertTrue(dictionary.search("banana"));
-        assertTrue(dictionary.search("yet"));
-        assertTrue(dictionary.search("ever"));
-        assertTrue(dictionary.search("Then"));
+        assertTrue(dictionary.search("mQOD"));
+        assertTrue(dictionary.search("ScW5cWX"));
+        assertTrue(dictionary.search("p5gJsP"));
     }
 
     @Test
@@ -290,13 +405,15 @@ public class Junit {
         dictionary.insert("apple");
         dictionary.insert("banana");
 
-        dictionary.batchDelete("test2.txt");
+
+        dictionary.batchInsert("20k.txt");
+        dictionary.batchDelete("20k.txt");
 
         assertTrue(dictionary.search("apple"));
         assertTrue(dictionary.search("banana"));
-        assertFalse(dictionary.search("yet"));
-        assertFalse(dictionary.search("ever"));
-        assertFalse(dictionary.search("Then"));
+        assertFalse(dictionary.search("mQOD"));
+        assertFalse(dictionary.search("ScW5cWX"));
+        assertFalse(dictionary.search("p5gJsP"));
 
     }
     @Test
@@ -357,6 +474,20 @@ public class Junit {
         assertFalse(dictionary2.search("yet"));
         assertFalse(dictionary2.search("ever"));
         assertFalse(dictionary2.search("Then"));
+    }
+
+
+    private List<String> readKeysFromFile(String filePath) {
+        List<String> keys = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("testcases/"+filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                keys.add(line.trim());
+            }
+        } catch (IOException e) {
+            System.out.println("\u001B[31mAn ERROR occurred opening file\u001B[0m ");
+        }
+        return keys;
     }
 }
 

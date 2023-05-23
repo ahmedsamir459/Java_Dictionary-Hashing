@@ -5,28 +5,17 @@ import java.util.Random;
 
 public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
     private int size;
-    private List<T>[] table;
-    private int[][] hashFunction;
+    List<T>[] table;
+    int[][] hashFunction;
     private Random random;
     private boolean collisionDetected;
     private int collisionCount;
     private int rebuildCount;
 
-    public UniversalHashing(T[] keys) {
-        size = keys.length;
-        random = new Random();
-        // Create the hash table
-        table = new List[size * size];
-        collisionDetected = false;
-        collisionCount = 0;
-        rebuildCount = 0;
-        buildHashTable(keys);
-    }
-
     public UniversalHashing(int size) {
         this.size = size;
         random = new Random();
-        // Create the hash table
+//        System.out.println(size*size);
         table = new List[size * size];
         generateHashFunction();
     }
@@ -43,6 +32,7 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
         } else {
             table[index].add(key);
             if (table[index].size() > 1) {
+                rebuildCount++;
                 collisionCount++;
                 List<T> elementsToReinsert = new ArrayList<>();
                 for (List<T> bin : table) {
@@ -91,6 +81,8 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
     }
 
     private void buildHashTable(T[] keys) {
+        boolean collisionDetected;
+
         do {
             collisionDetected = false;
             generateHashFunction();
@@ -98,8 +90,10 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
             for (T key : keys) {
                 int index = calculateIndex(key);
                 if (table[index] != null && !table[index].isEmpty()) {
+                    table[index]= null;
                     collisionDetected = true;
-                    collisionCount++;
+                    this.collisionDetected = true;
+
                     break;
                 }
                 if (table[index] == null) {
@@ -109,7 +103,8 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
             }
 
             if (collisionDetected) {
-                rebuildCount++;
+                collisionCount++;
+                table = null;
                 table = new List[size * size]; // Clear the table if collisions occurred
             }
         } while (collisionDetected);
@@ -136,7 +131,7 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
 
     private int dotProduct(int[] hash, T key) {
         int result = 0;
-        int[] keyBits = toBinaryArray(key.hashCode());
+        int[] keyBits = toBinaryArray(this.customHashFunction(key));
         for (int i = 0; i < 32; i++) {
             result += hash[i] * keyBits[i];
         }
@@ -172,7 +167,7 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
     }
 
     public boolean isCollisionDetected() {
-        return collisionDetected;
+        return this.collisionDetected;
     }
 
     public int getCollisionCount() {
@@ -182,4 +177,20 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
     public int getRebuildCount() {
         return rebuildCount;
     }
+
+    private int customHashFunction(Object key) {
+        String str = key.toString();
+        final int FNV_OFFSET_BASIS = 0x811C9DC5;
+        final int FNV_PRIME = 0x01000193;
+
+        int hash = FNV_OFFSET_BASIS;
+
+        for (int i = 0; i < str.length(); i++) {
+            hash ^= str.charAt(i);
+            hash *= FNV_PRIME;
+        }
+
+        return hash;
+    }
+
 }
