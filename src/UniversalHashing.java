@@ -67,7 +67,12 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
 
     @Override
     public int batchInsert(T[] keys) {
-        int inserted =buildHashTable(keys);
+        int inserted = 0;
+        for (T key : keys) {
+            if (insert(key)) {
+                inserted++;
+            }
+        }
         return inserted;
     }
 
