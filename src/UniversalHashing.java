@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
     private int size;
@@ -68,11 +65,14 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
     @Override
     public int batchInsert(T[] keys) {
         int inserted = 0;
-        for (T key : keys) {
-            if (insert(key)) {
-                inserted++;
+        List<T> keysList = new ArrayList<>(Arrays.asList(keys));
+        for (List<T> bin : table) {
+            if (bin != null) {
+                keysList.addAll(bin);
             }
         }
+        T[] keysArray = toArrayWithElementType(keysList);
+        inserted=buildHashTable(keysArray);
         return inserted;
     }
 
