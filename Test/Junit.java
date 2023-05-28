@@ -10,10 +10,10 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class Junit {
-    int size=20000 ;
+    int size = 20000;
     private HashTable<Integer> hashing;
-    private Dictionary dictionary=new Dictionary("O(N^2)", size);
-    private Dictionary dictionary2=new Dictionary("O(N)", 85000);
+    private Dictionary dictionary = new Dictionary("O(N^2)", size);
+    private Dictionary dictionary2 = new Dictionary("O(N)", 85000);
 
 
     @Test
@@ -21,6 +21,7 @@ public class Junit {
         HashTable<Integer> hashTable = new UniversalHashing<>(8);
         testHashTable(hashTable);
     }
+
     @Test
     public void testPerfectHashing() {
         HashTable<Integer> hashTable = new PerfectHashing<>(8);
@@ -28,42 +29,41 @@ public class Junit {
     }
 
     @Test
-    public void timeComparisons(){
+    public void timeComparisons() {
         List<String> keys = readKeysFromFile("10k.txt");
 
         HashTable<String> dictionary = new UniversalHashing<>(keys.size());
         HashTable<String> dictionary2 = new PerfectHashing<>(keys.size());
 
-        long avr1=0;
-        long avr2=0;
+        long avr1 = 0;
+        long avr2 = 0;
 
-        for (int i=0; i<10; i++){
+        for (int i = 0; i < 10; i++) {
             long startTime = System.currentTimeMillis();
             for (String key : keys) {
                 dictionary.insert(key);
             }
             long endTime = System.currentTimeMillis();
             long duration = (endTime - startTime);
-            dictionary=new UniversalHashing<>(keys.size());
-            avr1+=duration;
+            dictionary = new UniversalHashing<>(keys.size());
+            avr1 += duration;
         }
-        avr1/=10;
-        System.out.println("Time taken to insert 20k keys in O(N^2) is: " + avr1+ " ms");
+        avr1 /= 10;
+        System.out.println("Time taken to insert 20k keys in O(N^2) is: " + avr1 + " ms");
 
-        for (int i=0; i<10; i++){
+        for (int i = 0; i < 10; i++) {
             long startTime2 = System.currentTimeMillis();
             for (String key : keys) {
                 dictionary2.insert(key);
             }
             long endTime2 = System.currentTimeMillis();
             long duration2 = (endTime2 - startTime2);
-            dictionary2=new PerfectHashing<>(keys.size());
-            avr2+=duration2;
+            dictionary2 = new PerfectHashing<>(keys.size());
+            avr2 += duration2;
         }
-        avr2/=10;
+        avr2 /= 10;
         System.out.println("Time taken to insert 20k keys in O(N) is: " + avr2 + " ms");
     }
-
 
 
     private void testHashTable(HashTable<Integer> hashTable) {
@@ -101,7 +101,7 @@ public class Junit {
         Assert.assertFalse(hashTable.delete(105)); // Not inserted, should return false
 
         // Batch insertion tests
-        Integer[] keys = { 2, 4, 6, 8, 10 };
+        Integer[] keys = {2, 4, 6, 8, 10};
         hashTable.batchInsert(keys);
         Assert.assertTrue(hashTable.search(2));
         Assert.assertTrue(hashTable.search(4));
@@ -117,14 +117,14 @@ public class Junit {
         Assert.assertFalse(hashTable.search(8));
         Assert.assertFalse(hashTable.search(10));
 
-        // Performance tests
+//         Performance tests
         int[] largeKeys = generateLargeKeys(10000);
-        if(hashTable instanceof UniversalHashing){
+        if (hashTable instanceof UniversalHashing) {
             System.out.println("Universal Hashing");
-            hashTable=new UniversalHashing<>(10000);
-        }else{
+            hashTable = new UniversalHashing<>(10000);
+        } else {
             System.out.println("Perfect Hashing");
-            hashTable=new PerfectHashing<>(10000);
+            hashTable = new PerfectHashing<>(10000);
 
         }
         long start = System.currentTimeMillis();
@@ -162,11 +162,11 @@ public class Junit {
     @Test
     public void testInsert() {
         //test universal hashing
-        hashing=new UniversalHashing<>(5);
+        hashing = new UniversalHashing<>(5);
         hashing.insert(5);
         assertTrue(hashing.search(5));
         //test perfect hashing
-        hashing=new PerfectHashing<>(5);
+        hashing = new PerfectHashing<>(5);
         hashing.insert(5);
         assertTrue(hashing.search(5));
     }
@@ -174,12 +174,12 @@ public class Junit {
     @Test
     public void testDelete() {
         //test universal hashing
-        hashing=new UniversalHashing<>(5);
+        hashing = new UniversalHashing<>(5);
         hashing.insert(5);
         hashing.delete(5);
         assertFalse(hashing.search(5));
         //test perfect hashing
-        hashing=new PerfectHashing<>(5);
+        hashing = new PerfectHashing<>(5);
         hashing.insert(5);
         hashing.delete(5);
         assertFalse(hashing.search(5));
@@ -188,7 +188,7 @@ public class Junit {
     @Test
     public void testingBatchInsert() {
         //test universal hashing
-        hashing=new UniversalHashing<>(5);
+        hashing = new UniversalHashing<>(5);
         Integer[] keys = {1, 2, 3, 4, 5};
         Integer[] keys2 = {6, 7, 8, 9, 10};
         hashing.batchInsert(keys);
@@ -200,7 +200,7 @@ public class Junit {
             assertTrue(hashing.search(key));
         }
         //test perfect hashing
-        hashing=new PerfectHashing<>(5);
+        hashing = new PerfectHashing<>(5);
         hashing.batchInsert(keys);
         hashing.batchInsert(keys2);
         for (Integer key : keys) {
@@ -214,7 +214,7 @@ public class Junit {
     @Test
     public void testBatchDelete() {
         //test universal hashing
-        hashing=new UniversalHashing<>(5);
+        hashing = new UniversalHashing<>(5);
         Integer[] keys = {1, 2, 3, 4, 5};
         Integer[] keys2 = {6, 7, 8, 9, 10};
         hashing.batchInsert(keys);
@@ -226,7 +226,7 @@ public class Junit {
             assertFalse(hashing.search(key));
         }
         //test perfect hashing
-        hashing=new PerfectHashing<>(5);
+        hashing = new PerfectHashing<>(5);
         hashing.batchInsert(keys);
         hashing.batchDelete(keys);
         for (Integer key : keys) {
@@ -276,19 +276,19 @@ public class Junit {
         HashTable<String> hashTable2 = new PerfectHashing<>(1000);
 
         for (int i = 0; i < 1000; i++) {
-            hashTable.insert("key"+i);
-            hashTable2.insert("key"+i);
+            hashTable.insert("key" + i);
+            hashTable2.insert("key" + i);
         }
         for (int i = 0; i < 1000; i++) {
-            assertTrue(hashTable.search("key"+i));
-            assertTrue(hashTable2.search("key"+i));
+            assertTrue(hashTable.search("key" + i));
+            assertTrue(hashTable2.search("key" + i));
         }
     }
 
     @Test
     public void testCollisionCount() {
 
-        List<String> words = readKeysFromFile("20k.txt");
+        List<String> words = readKeysFromFile("10k.txt");
         HashTable<String> hashTable = new PerfectHashing<>(words.size());
         HashTable<String> hashTable2 = new UniversalHashing<>(words.size());
 
@@ -301,9 +301,10 @@ public class Junit {
         System.out.println("Collision count for O(N): " + rebuildCount);
         System.out.println("Collision count for O(N^2): " + rebuildCount2);
 
-        Assert.assertEquals(true,rebuildCount<=words.size());
-        Assert.assertEquals(true,rebuildCount2<=words.size());
+        Assert.assertEquals(true, rebuildCount <= words.size());
+        Assert.assertEquals(true, rebuildCount2 <= words.size());
     }
+
     @Test
     public void testRebuildCount() {
 
@@ -320,12 +321,14 @@ public class Junit {
         System.out.println("ReBuild count for O(N): " + rebuildCount);
         System.out.println("ReBuild count for O(N^2): " + rebuildCount2);
 
-        Assert.assertEquals(true,rebuildCount<=words.size());
-        Assert.assertEquals(true,rebuildCount2<=words.size());
+        Assert.assertEquals(true, rebuildCount <= words.size());
+        Assert.assertEquals(true, rebuildCount2 <= words.size());
     }
 
 
-    /** Space Complexity Tests */
+    /**
+     * Space Complexity Tests
+     */
     @Test
     public void testSpaceComplexity() {
 
@@ -336,7 +339,7 @@ public class Junit {
             hashTable.insert("key" + i);
         }
         System.out.println("Space complexity: " + hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable));
-        Assert.assertEquals(true,hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable)<=Math.pow(n,2));
+        Assert.assertEquals(true, hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable) <= Math.pow(n, 2));
 
         //test perfect hashing
         PerfectHashing<String> hashTable2 = new PerfectHashing<>(n);
@@ -345,12 +348,13 @@ public class Junit {
             hashTable2.insert("key" + i);
         }
         System.out.println("Space complexity: " + hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable2));
-        Assert.assertEquals(true,n<=hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable2)&&hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable2)<=Math.log(n)*n);
+        Assert.assertEquals(true, n <= hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable2) && hashTableSpaceComplexityTest.calculateSpaceComplexity(hashTable2) <= Math.log(n) * n);
     }
 
 
-
-    /** Dictionary Tests */
+    /**
+     * Dictionary Tests
+     */
     @Test
     public void testDictionaryInsert() {
         dictionary.insert("apple");
@@ -416,6 +420,7 @@ public class Junit {
         assertFalse(dictionary.search("p5gJsP"));
 
     }
+
     @Test
     public void testDictionary2Insert() {
         dictionary2.insert("apple");
@@ -426,6 +431,7 @@ public class Junit {
         assertTrue(dictionary2.search("banana"));
         assertTrue(dictionary2.search("cherry"));
     }
+
     @Test
     public void testDictionary2Delete() {
         dictionary2.insert("apple");
@@ -438,6 +444,7 @@ public class Junit {
         assertFalse(dictionary2.search("banana"));
         assertTrue(dictionary2.search("cherry"));
     }
+
     @Test
     public void testDictionary2Search() {
         dictionary2.insert("apple");
@@ -449,6 +456,7 @@ public class Junit {
         assertTrue(dictionary2.search("cherry"));
         assertFalse(dictionary2.search("orange"));
     }
+
     @Test
     public void testDictionary2BatchInsert() {
         dictionary2.insert("apple");
@@ -462,6 +470,7 @@ public class Junit {
         assertTrue(dictionary2.search("ever"));
         assertTrue(dictionary2.search("Then"));
     }
+
     @Test
     public void testDictionary2BatchDelete() {
         dictionary2.insert("apple");
@@ -479,7 +488,7 @@ public class Junit {
 
     private List<String> readKeysFromFile(String filePath) {
         List<String> keys = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader("testcases/"+filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("testcases/" + filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 keys.add(line.trim());
@@ -488,6 +497,32 @@ public class Junit {
             System.out.println("\u001B[31mAn ERROR occurred opening file\u001B[0m ");
         }
         return keys;
+    }
+
+    @Test
+    public void testSearchTime() {
+
+        List<String> keys = readKeysFromFile("1000.txt");
+        HashTable<String> hashTable2 = new UniversalHashing<>(keys.size());
+
+
+        long start = System.currentTimeMillis();
+//                for (String key : keys) {
+//            hashTable2.insert(key);
+//        }
+        hashTable2.batchInsert(keys.toArray(new String[0]));
+        long end = System.currentTimeMillis();
+        System.out.println(hashTable2.getCollisionCount());
+//        hashTable2.search("aa");
+//        hashTable2.search("nOXTL");
+//        hashTable2.search("QyOB");
+//        hashTable2.search("0U12qRX");
+//        hashTable2.search("q6a");
+//        hashTable2.search("4mHe14");
+
+        long avr = (end - start) ;
+        System.out.println("Average search time for Perfect Hashing: " + avr + "ms");
+
     }
 }
 

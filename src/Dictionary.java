@@ -65,7 +65,6 @@ public class Dictionary {
         if (notInserted != 0) {
             System.out.print("(" + notInserted + ")" + "\u001B[31m word(s) ALREADY EXIST \n\u001B[0m");
         }
-        System.out.println("Collision Count: " + dictionary.getCollisionCount());
     }
 
     public void batchDelete(String filePath) {

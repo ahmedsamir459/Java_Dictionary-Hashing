@@ -15,7 +15,6 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
     public UniversalHashing(int size) {
         this.size = size;
         random = new Random();
-//        System.out.println(size*size);
         table = new List[size * size];
         generateHashFunction();
     }
@@ -121,6 +120,7 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
 
     private int calculateIndex(T key) {
         int index = 0;
+        int [] keyBits = toBinaryArray(this.customHashFunction(key));
         for (int i = 0; i < log2(size * size); i++) {
             int[] hash = hashFunction[i];
             int h = dotProduct(hash, key);
