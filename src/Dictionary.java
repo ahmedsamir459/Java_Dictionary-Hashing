@@ -52,15 +52,8 @@ public class Dictionary {
         if (keys.isEmpty()) {
             return;
         }
-        for (String key : keys) {
-            if (!dictionary.search(key)){
-                Inserted++;
-                dictionary.insert(key);
-            }
-            else {
-                notInserted++;
-            }
-        }
+        Inserted=dictionary.batchInsert(keys.toArray(new String[0]));
+        notInserted=keys.size()-Inserted;
         System.out.print("(" + Inserted + ")" + "\u001B[32m word(s) SUCCEFULLY INSERTED ✅\n\u001B[0m");
         if (notInserted != 0) {
             System.out.print("(" + notInserted + ")" + "\u001B[31m word(s) ALREADY EXIST \n\u001B[0m");

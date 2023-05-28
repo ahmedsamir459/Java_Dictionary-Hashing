@@ -502,28 +502,25 @@ public class Junit {
     @Test
     public void testSearchTime() {
 
-        List<String> keys = readKeysFromFile("1000.txt");
-        HashTable<String> hashTable2 = new UniversalHashing<>(keys.size());
+        List<String> keys = readKeysFromFile("20k.txt");
+        HashTable<String> hashTable2 = new PerfectHashing<>(keys.size());
 
-
+        for (String key : keys) {
+            hashTable2.insert(key);
+        }
         long start = System.currentTimeMillis();
-//                for (String key : keys) {
-//            hashTable2.insert(key);
-//        }
-        hashTable2.batchInsert(keys.toArray(new String[0]));
+        hashTable2.search("aa");
+        hashTable2.search("nOXTL");
+        hashTable2.search("QyOB");
+        hashTable2.search("0U12qRX");
+        hashTable2.search("q6a");
+        hashTable2.search("4mHe14");
         long end = System.currentTimeMillis();
-        System.out.println(hashTable2.getCollisionCount());
-//        hashTable2.search("aa");
-//        hashTable2.search("nOXTL");
-//        hashTable2.search("QyOB");
-//        hashTable2.search("0U12qRX");
-//        hashTable2.search("q6a");
-//        hashTable2.search("4mHe14");
-
         long avr = (end - start) ;
-        System.out.println("Average search time for Perfect Hashing: " + avr + "ms");
+        System.out.println("Average search time for Perfect Hashing: " + avr + "ns");
 
     }
+
 }
 
 

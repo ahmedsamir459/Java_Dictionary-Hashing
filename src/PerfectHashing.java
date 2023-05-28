@@ -90,7 +90,13 @@ public class PerfectHashing <T extends Comparable<T>> implements HashTable<T>{
     }
 
     @Override
-    public void batchInsert(T[] keys) {
+    public int batchInsert(T[] keys) {
+        int count= keys.length;
+//        for (T key : keys) {
+//            if (insert(key)) {
+//                count++;
+//            }
+//        }
         for (T key : keys) {
             int index1 = calculateIndex(key, outerHashFunction, outerTableSize);
             counter[index1]++;
@@ -98,7 +104,7 @@ public class PerfectHashing <T extends Comparable<T>> implements HashTable<T>{
         }
         for (T key : keys) {
             int i=calculateIndex(key, outerHashFunction, outerTableSize);
-            if (outerTable[i] == null) { //No inner Table
+            if (outerTable[i] == null) {
                 outerTable[i]=new List[(int) Math.pow(counter[i],2)];
                 innerHashFunctions[i]=generateHashFunction((int) Math.pow(counter[i],2));
                 int index2 = calculateIndex(key, innerHashFunctions[i], outerTable[i].length);
@@ -111,7 +117,7 @@ public class PerfectHashing <T extends Comparable<T>> implements HashTable<T>{
                     outerTable[i][index2].add(key);
                 }
                 else if (outerTable[i][index2].contains(key)) {
-                    continue;
+                    count--;
                 }
                 else if (outerTable[i][index2].isEmpty()){
                     outerTable[i][index2].add(key);
@@ -129,13 +135,12 @@ public class PerfectHashing <T extends Comparable<T>> implements HashTable<T>{
                     Arrays.fill(outerTable[i], null);
                     T[] reinsertArray = toArrayWithElementType(elementsToReinsert);
                     outerTable[i]=buildHashTable(reinsertArray,i);
-                    break;
                 }
 
             }
         }
 
-
+        return count;
     }
 
 
@@ -159,20 +164,22 @@ public class PerfectHashing <T extends Comparable<T>> implements HashTable<T>{
 
     private List<T>[] buildHashTable(T[] keys, int outerIndex) {
         int size=keys.length* keys.length;
-//        System.out.println("Keys Size= "+size+" Keys are "+Arrays.toString(keys));
+        if (size<outerTable[outerIndex].length){
+            size=outerTable[outerIndex].length;
+        }
         List<T>[] table=new List[size];
+
         int count=-1;
         do {
             count++;
 //            System.out.println("In loop for the "+(count+1)+" time");
             Arrays.fill(table,null);
             collisionDetected = false;
-            innerHashFunctions[outerIndex]=generateHashFunction(keys.length* keys.length);
+            innerHashFunctions[outerIndex]=generateHashFunction(size);
             for (T key : keys) {
                 int index = calculateIndex(key,innerHashFunctions[outerIndex],size);
                 if (table[index] != null && !table[index].isEmpty()) {
 
-//                    System.out.println("Keys Size= "+size+" Keys are "+Arrays.toString(keys));
                     collisionDetected = true;
                     collisionCount++;
                     break;

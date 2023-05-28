@@ -66,10 +66,9 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
     }
 
     @Override
-    public void batchInsert(T[] keys) {
-        for (T key : keys) {
-            insert(key);
-        }
+    public int batchInsert(T[] keys) {
+        int inserted =buildHashTable(keys);
+        return inserted;
     }
 
     @Override
@@ -79,8 +78,9 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
         }
     }
 
-    private void buildHashTable(T[] keys) {
+    private int buildHashTable(T[] keys) {
         boolean collisionDetected;
+        int count = keys.length;
 
         do {
             collisionDetected = false;
@@ -89,7 +89,11 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
             for (T key : keys) {
                 int index = calculateIndex(key);
                 if (table[index] != null && !table[index].isEmpty()) {
-                    table[index]= null;
+                    if (table[index].contains(key)) {
+                        count--;
+                        continue;
+                    }
+                    table[index] = null;
                     collisionDetected = true;
                     this.collisionDetected = true;
 
@@ -107,6 +111,7 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
                 table = new List[size * size]; // Clear the table if collisions occurred
             }
         } while (collisionDetected);
+        return count;
     }
 
     private void generateHashFunction() {
@@ -120,7 +125,7 @@ public class UniversalHashing<T extends Comparable<T>> implements HashTable<T> {
 
     private int calculateIndex(T key) {
         int index = 0;
-        int [] keyBits = toBinaryArray(this.customHashFunction(key));
+        int[] keyBits = toBinaryArray(this.customHashFunction(key));
         for (int i = 0; i < log2(size * size); i++) {
             int[] hash = hashFunction[i];
             int h = dotProduct(hash, key);
