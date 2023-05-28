@@ -30,7 +30,7 @@ public class Junit {
 
     @Test
     public void timeComparisons() {
-        List<String> keys = readKeysFromFile("10k.txt");
+        List<String> keys = readKeysFromFile("1000.txt");
 
         HashTable<String> dictionary = new UniversalHashing<>(keys.size());
         HashTable<String> dictionary2 = new PerfectHashing<>(keys.size());
